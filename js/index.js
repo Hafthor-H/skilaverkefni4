@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
         activeUsers--;
       })
       socket.on('chat message', (msg) => {
-        io.emit('chat message', socket.userName + ": " + msg);
+        io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
       });
       socket.on("join", (person) => {
         socket.userName = person;
@@ -47,6 +47,15 @@ io.on('connection', (socket) => {
     }
   })
 });
+
+function Tímiskilaboða(){
+  const tími = new Date();
+  const klst = String(tími.getHours()).padStart(2, "0");
+  const min = String(tími.getMinutes()).padStart(2, "0");
+  const sek = String(tími.getSeconds()).padStart(2, "0");
+
+  return `[${klst}:${min}:${sek}] - `;
+}
 
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
