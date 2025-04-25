@@ -3,11 +3,13 @@ import { createServer } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
+import mongodb from "mongodb";
 
 
 const app = express();
 const server = createServer(app)
 const io = new Server(server);
+const { Mongoclient } = mongodb;
 
 var users = [];
 var activeUsers = 0;
@@ -18,37 +20,46 @@ app.get('/', (req, res) => {
   res.sendFile(join(__dirname, '../html/index.html'));
 });
 
-io.on('connection', (socket) => {
-  socket.on("pW", (password) => {
-    if (password == "42") {
-      socket.emit("lock", true)
-      activeUsers++;
-      io.emit("userNum", activeUsers);
-      socket.on("disconnect", () => {
-        for (let i = 0; i < users.length; i++) {
-          if (socket.userName === users[i]) {
-            users.splice(i, 1)
+mongodb.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: true }, function (err, db) {
+  if (err) {
+    throw err;
+  }
+
+  var chatDB = db.db("Skilaverkefni 4");
+
+  io.on('connection', (socket) => {
+    socket.on("pW", (password) => {
+      if (password == "42") {
+        socket.emit("lock", true)
+        activeUsers++;
+        io.emit("userNum", activeUsers);
+        socket.on("disconnect", () => {
+          for (let i = 0; i < users.length; i++) {
+            if (socket.userName === users[i]) {
+              users.splice(i, 1)
+            }
           }
+          activeUsers--;
+        })
+        socket.on('chat message', (msg) => {
+          io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
+          chatDB.collection("messages").InsertOne({ msg: socket.userName + " skrifaði: " + msg });
+        });
+        socket.on("join", (person) => {
+          socket.userName = person;
+          users.push(socket.userName);
+          io.emit("userArray", users)
         }
-        activeUsers--;
-      })
-      socket.on('chat message', (msg) => {
-        io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
-      });
-      socket.on("join", (person) => {
-        socket.userName = person;
-        users.push(socket.userName);
-        io.emit("userArray", users)
+        )
       }
-      )
-    }
-    else {
-      socket.emit("lock", false)
-    }
-  })
+      else {
+        socket.emit("lock", false)
+      }
+    })
+  });
 });
 
-function Tímiskilaboða(){
+function Tímiskilaboða() {
   const tími = new Date();
   const klst = String(tími.getHours()).padStart(2, "0");
   const min = String(tími.getMinutes()).padStart(2, "0");
