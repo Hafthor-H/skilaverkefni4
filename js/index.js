@@ -9,23 +9,24 @@ import mongodb from "mongodb";
 const app = express();
 const server = createServer(app)
 const io = new Server(server);
-const { Mongoclient } = mongodb;
+const { MongoClient } = mongodb;
 
 var users = [];
 var activeUsers = 0;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+app.use(express.static(join(__dirname, "public")));
 
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, '../html/index.html'));
 });
 
-mongodb.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: true }, function (err, db) {
+MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: true }, function (err, db) {
   if (err) {
     throw err;
   }
 
-  var chatDB = db.db("Skilaverkefni 4");
+  var chatDB = db.db("Gagnasafn");
 
   io.on('connection', (socket) => {
     socket.on("pW", (password) => {
@@ -43,7 +44,7 @@ mongodb.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: true
         })
         socket.on('chat message', (msg) => {
           io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
-          chatDB.collection("messages").InsertOne({ msg: socket.userName + " skrifaði: " + msg });
+          chatDB.collection("messages").insertOne({ msg: socket.userName + " skrifaði: " + msg });
         });
         socket.on("join", (person) => {
           socket.userName = person;
