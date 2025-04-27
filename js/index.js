@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
 import mongodb from "mongodb";
 
+var i = 0;
 
 const app = express();
 const server = createServer(app)
@@ -29,10 +30,18 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
   var chatDB = db.db("Gagnasafn");
 
   io.on('connection', (socket) => {
+
+
     socket.on("pW", (password) => {
       if (password == "42") {
         socket.emit("lock", true)
         activeUsers++;
+        chatDB.collection("messages").find({}).toArray(function (err, result) {
+          if (err) throw err;
+          for (let k = 0; k < result.length; k++) {
+            io.emit("chat message", result[k].msg);
+          }
+        });
         io.emit("userNum", activeUsers);
         socket.on("disconnect", () => {
           for (let i = 0; i < users.length; i++) {
@@ -44,12 +53,12 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
         })
         socket.on('chat message', (msg) => {
           io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
-          chatDB.collection("messages").insertOne({ msg: socket.userName + " skrifaði: " + msg });
+          chatDB.collection("messages").insertOne({ msg: Tímiskilaboða() + socket.userName + ": " + msg });
         });
         socket.on("join", (person) => {
           socket.userName = person;
           users.push(socket.userName);
-          io.emit("userArray", users)
+          io.emit("userArray", users);
         }
         )
       }
