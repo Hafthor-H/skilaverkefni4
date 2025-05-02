@@ -31,9 +31,6 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
   var chatDB = db.db("Gagnasafn");
 
   io.on('connection', (socket) => {
-
-
-
     socket.on("pW", (password) => {
       if (password == "42") {
         socket.emit("lock", true)
@@ -41,24 +38,18 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
         chatDB.collection("messages").find({}, { projection: { _id: 0, message: 1 } }).toArray(function (err, result) {
           if (err) throw err;
           for (let k = 0; k < result.length; k++) {
-            io.emit("chat message", result[k].message);
+            socket.emit("chat message", result[k].message);
           }
         });
 
-        socket.on("usernameHistory", (username) => {
-          console.log("Looking up messages for:", username);  // ekki að virka
+        socket.on("resetChat", () => {
+          chatDB.collection("messages").find({}, { projection: { _id: 0, message: 1 } }).toArray(function (err, result) {
+            if (err) throw err;
+            for (let b = 0; b < result.length; b++) {
+              socket.emit("chat message", result[b].message);
+            }
+          });
         });
-        // socket.on("usernameHistory", (username) => {
-        //   console.log("Looking up messages for:", username);
-        //   chatDB.collection("messages").find({ user: username }).toArray(function (err, userResult) {
-        //     if (err) {
-        //       throw err;
-        //     }
-        //     for (let j = 0; j < userResult.length; j++) {
-        //       io.emit("chat message", userResult[j].message)
-        //     }
-        //   })
-        // });
 
         io.emit("userNum", activeUsers);
         socket.on("disconnect", () => {
@@ -71,28 +62,29 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
         });
         socket.on('chat message', (msg) => {
           io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
-          chatDB.collection("messages").insertOne({ user: socket.userName, message: socket.userName + " : " + msg + " : " + Tímiskilaboða() });
+          chatDB.collection("messages").insertOne({ user: socket.userName, message: Tímiskilaboða() + socket.userName + " : " + msg });
         });
         socket.on("join", (person) => {
           socket.userName = person;
           users.push(socket.userName);
           io.emit("userArray", users);
         });
-        // https://www.w3schools.com/nodejs/nodejs_mongodb_find.asp
-        // socket.on("usernameHistory", (username) => {
-        //   db.getUser(username, { showCustomData: true })
-        //     .then((userData) => {
-        //       if (userData) {
-        //         socket.emit("historyResponse", userData);
-        //       } else {
-        //         socket.emit("historyError", "User not found");
-        //       }
-        //     })
-        //     .catch((error) => {
-        //       console.error("Villa í gagnagrunni: ", error);
-        //       socket.emit("historyError", "Villa í gagnagrunni");
-        //     });
-        // });
+
+        socket.on("usernameHistory", (username) => {
+          let query = { user: username };
+          console.log("Leita af skilaboðasögu");
+          chatDB.collection("messages").find(query).toArray((err, result) => {
+            if (err) {
+              throw err
+            };
+            console.log(result);
+            for (let l = 0; l < result.length; l++) {
+              console.log("bruh")
+              console.log(result[l].message)
+              socket.emit("chat message", result[l].message)
+            }
+          });
+        });
       }
       else {
         socket.emit("lock", false)
@@ -100,6 +92,7 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
     });
   });
 });
+
 
 function Tímiskilaboða() {
   const tími = new Date();

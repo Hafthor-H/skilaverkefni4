@@ -63,6 +63,12 @@
     nav {
       border: 2px solid black;
     }
+
+    #boxmsgHistory {
+      position: absolute;
+      top: 10%;
+      right: 5%;
+    }
   </style>
 </head>
 
@@ -74,10 +80,12 @@
     </nav>
   </div>
   <ul id="messages"></ul>
-  <form id="msgHistory" action="">
-    <input id="inputHistory" placeholder="Skrifaðu notandanafn..."><button>Sækja
-      skilaboð</button>
-  </form>
+
+  <div id="boxmsgHistory">
+    <input id="inputHistory" placeholder="Skrifaðu notandanafn...">
+    <button id="msghistoryTakki">Sækja skilaboð</button> <br>
+    <button id="resetHistory">Reset</button> <br>
+  </div>
 
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Send</button>
@@ -86,15 +94,22 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-
-    const form_skilaboðasaga = document.getElementById("msgHistory");
     const form = document.getElementById('form');
     const input = document.getElementById('input');
-    const input_skilaboðasaga = document.getElementById("inputHistory");
     const messages = document.getElementById('messages');
     const usernames = document.getElementById("usernames");
 
+    document.getElementById("resetHistory").addEventListener("click", () => {
+      messages.innerHTML = "";
+      socket.emit("resetChat")
+    })
 
+
+    document.getElementById("msghistoryTakki").addEventListener("click", () => {
+      messages.innerHTML = "";
+      let nafn_input = document.getElementById("inputHistory").value;
+      socket.emit("usernameHistory", nafn_input);
+    })
 
 
     let password = prompt("Password: ")
@@ -116,20 +131,6 @@
       if (input.value) {
         socket.emit('chat message', input.value);
         input.value = '';
-      }
-    });
-
-    // function sendUsername() {
-    //   console.log("fires")
-    //   socket.emit("usernameHistory", userSearch.value)
-    // }
-
-    form_skilaboðasaga.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const usernameInput = input_skilaboðasaga.value.trim();
-      if (usernameInput) {
-        console.log("Sendir");
-        socket.emit("usernameHistory", usernameInput);
       }
     });
 
