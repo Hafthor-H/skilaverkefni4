@@ -54,7 +54,7 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
         });
         socket.on('chat message', (msg) => {
           io.emit('chat message', Tímiskilaboða() + socket.userName + ": " + msg);
-          chatDB.collection("messages").insertOne({ user: socket.userName, message: Tímiskilaboða() + socket.userName + " : " + msg });
+          chatDB.collection("messages").insertOne({ user: socket.userName, message: Tímiskilaboða() + socket.userName + ": " + msg });
         });
         socket.on("join", (person) => {
           socket.userName = person;
