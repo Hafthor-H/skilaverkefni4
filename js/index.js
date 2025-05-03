@@ -1,27 +1,20 @@
-import express from 'express';
+import Express from 'express';
 import { createServer } from 'node:http';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
 import mongodb from "mongodb";
+import router from "../routes/routes.js"
 
 
-const app = express();
+const app = Express();
 const server = createServer(app)
 const io = new Server(server);
 const { MongoClient } = mongodb;
+app.use('/', router);
 
 
 
 var users = [];
 var activeUsers = 0;
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-app.use(express.static(join(__dirname, "public")));
-
-app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, '../html/index.html'));
-});
 
 MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: true }, function (err, db) {
   if (err) {
@@ -72,15 +65,11 @@ MongoClient.connect("mongodb://127.0.0.1/Skilaverkefni4", { useUnifiedTopology: 
 
         socket.on("usernameHistory", (username) => {
           let query = { user: username };
-          console.log("Leita af skilaboðasögu");
           chatDB.collection("messages").find(query).toArray((err, result) => {
             if (err) {
               throw err
             };
-            console.log(result);
             for (let l = 0; l < result.length; l++) {
-              console.log("bruh")
-              console.log(result[l].message)
               socket.emit("chat message", result[l].message)
             }
           });
