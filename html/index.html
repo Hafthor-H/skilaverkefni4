@@ -46,6 +46,12 @@
       color: #fff;
     }
 
+    #form>button:hover {
+      cursor: pointer;
+      color: lightblue;
+      background-color: gray;
+    }
+
     #messages {
       list-style-type: none;
       margin: 0;
@@ -66,14 +72,37 @@
 
     #boxmsgHistory {
       position: absolute;
-      top: 10%;
-      right: 5%;
+      top: 1%;
+      right: 2%;
+    }
+
+    #boxmsgHistory button {
+      background: #333;
+      border: none;
+      padding: 0 1rem;
+      margin: 0.25rem;
+      border-radius: 3px;
+      outline: none;
+      color: #fff;
+    }
+
+    #boxmsgHistory button:hover {
+      background-color: gray;
+      color: lightblue;
+      cursor: pointer;
+    }
+
+    #storiContainer {
+      border: 1px solid black;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 
 <body>
-  <div>
+
+  <div id="storiContainer">
     <nav>
       <p id="userCount"></p>
       <ul id="usernames"></ul>
@@ -86,6 +115,7 @@
     <button id="msghistoryTakki">Sækja skilaboð</button> <br>
     <button id="resetHistory">Endurstilla</button> <br>
   </div>
+
 
   <form id="form" action="">
     <input id="input" autocomplete="off" /><button>Senda</button>

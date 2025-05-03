@@ -1,8 +1,8 @@
 import Express from 'express';
+import mongodb from "mongodb";
 import { createServer } from 'node:http';
 import { Server } from 'socket.io';
-import mongodb from "mongodb";
-import router from "../routes/routes.js"
+import router from "../routes/routes.js";
 
 
 const app = Express();
@@ -10,7 +10,6 @@ const server = createServer(app)
 const io = new Server(server);
 const { MongoClient } = mongodb;
 app.use('/', router);
-
 
 
 var users = [];
